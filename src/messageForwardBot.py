@@ -42,7 +42,8 @@ is_photo_handler_premium = False
 is_text_handler_premium = False
 
 
-main_channel = int(-4136015224)
+main_channel = int(-1002106528369)
+main_channel_link = int(-1002106528369)
 premium_channel = int(-1002235324140)
 
 # Create a Telegram client
@@ -72,7 +73,11 @@ def check_champ(text):
 
 async def handler_group_one(client: Client, message: Message):
     global is_media_group_handler_one, is_photo_handler_one, is_text_handler_one, status_determine_handler_one
-
+    print("handler_group_one ")
+    print("Message Text: ", message.text)
+    print("message.media_group_id: ", message.media_group_id)
+    print("message.video and message.caption: ", (message.video and message.caption))
+    print("message.photo and message.caption: ", (message.photo and message.caption))
     # if (
     #     check_link(message.text)
     #     or check_link(message.caption)
@@ -91,7 +96,7 @@ async def handler_group_one(client: Client, message: Message):
             status_determine_handler_one = True
 
             new_message = await client.copy_media_group(
-                main_channel, source_channel_a, message.id
+                main_channel_link, source_channel_a, message.id
             )
 
             await asyncio.sleep(2)
@@ -101,32 +106,32 @@ async def handler_group_one(client: Client, message: Message):
 
             try:
                 await client.edit_message_caption(
-                    main_channel,
+                    main_channel_link,
                     new_message[0].id,
                     replace_text(new_message[0].caption, replacements),
                 )
             except Exception as ex:
                 print(ex)
 
-        elif message.video or message.caption:
+        elif message.video and message.caption:
             replacements = {"@SignalsOw": "@crytpmasteralex"}
             video = message.video.file_id
             caption = (
                 replace_text(message.caption, replacements) if message.caption else ""
             )
             await client.send_video(
-                main_channel,
+                main_channel_link,
                 video=video,
                 caption=caption,
             )
-        elif message.photo or message.caption:
+        elif message.photo and message.caption:
             replacements = {"@SignalsOw": "@crytpmasteralex"}
             photo = message.photo.file_id
             caption = (
                 replace_text(message.caption, replacements) if message.caption else ""
             )
             await client.send_photo(
-                main_channel,
+                main_channel_link,
                 photo=photo,
                 caption=caption,
             )
@@ -136,7 +141,7 @@ async def handler_group_one(client: Client, message: Message):
 
             new_txt = replace_text(message.text, replacements)
             await client.send_message(
-                main_channel,
+                main_channel_link,
                 new_txt,
                 parse_mode=ParseMode.MARKDOWN,
             )
@@ -147,6 +152,12 @@ async def handler_group_one(client: Client, message: Message):
 
 async def handler_group_two(client: Client, message: Message):
     global is_media_group_handler_two, is_photo_handler_two, is_text_handler_two, status_determine_handler_two
+
+    print("handler_group_two ")
+    print("Message Text: ", message.text)
+    print("message.media_group_id: ", message.media_group_id)
+    print("message.video and message.caption: ", (message.video and message.caption))
+    print("message.photo and message.caption: ", (message.photo and message.caption))
 
     if (
         check_link(message.text)
@@ -222,6 +233,12 @@ async def handler_group_two(client: Client, message: Message):
 
 async def handler_group_premium(client: Client, message: Message):
     global is_media_group_handler_two, is_photo_handler_two, is_text_handler_two, status_determine_handler_two
+
+    print("handler_group_premium ")
+    print("Message Text: ", message.text)
+    print("message.media_group_id: ", message.media_group_id)
+    print("message.video and message.caption: ", (message.video and message.caption))
+    print("message.photo and message.caption: ", (message.photo and message.caption))
 
     if (
         check_link(message.text)
