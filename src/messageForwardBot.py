@@ -5,6 +5,18 @@ from pyrogram import filters
 from config import API_HASH, API_ID, PHONE
 from pyrogram.enums import ParseMode
 import asyncio
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("../bot.log"),  # Log to a file
+        logging.StreamHandler(),  # Log to console
+    ],
+)
+
+logger = logging.getLogger(__name__)
 
 # Define your API ID, Hash, and the phone number associated with your Telegram account
 api_id = API_ID
@@ -18,32 +30,25 @@ phone = PHONE
 # premium_channel = "https://t.me/premium_channel"
 
 
+# source_channel_a = -1001792317500 #test
 source_channel_a = -1001746203369
-source_channel_a_link = "https://t.me/signalsbitcoinandethereum"
 status_determine_handler_one = False
 is_media_group_handler_one = False
-is_photo_handler_one = False
-is_text_handler_one = False
 
-source_channel_b = -1001742512586
-source_channel_b_link = "https://t.me/+-ATPIPjdgP43OWUy"
-
+source_channel_b = -1002243037651  # test
+source_channel_b1 = -1001742512586  # test
+source_channel_b2 = -1001206076820  # test
+# source_channel_b = -1001742512586
 status_determine_handler_two = False
 is_media_group_handler_two = False
-is_photo_handler_two = False
-is_text_handler_two = False
 
 
 source_channel_premium = -1001979487373
-# source_channel_premium_link = -1001746203369
 status_determine_handler_premium = False
 is_media_group_handler_premium = False
-is_photo_handler_premium = False
-is_text_handler_premium = False
 
 
 main_channel = int(-1002106528369)
-main_channel_link = int(-1002106528369)
 premium_channel = int(-1002235324140)
 
 # Create a Telegram client
@@ -58,45 +63,77 @@ def replace_text(text, replacements):
 
 
 def check_link(text):
-    if "https://www.bybit.com/" in text:
+    if not text:
+        return
+
+    if "https://www.bybit.com/" in text or "https" in text:
         return True
+
+    # if "https://www.bybit.com/" in text:
+    #     return True
 
     return False
 
 
 def check_champ(text):
+    if not text:
+        return
+
     if "European Football Championship" in text:
         return True
 
     return False
 
 
+@client.on_message(filters=filters.chat(source_channel_a))
 async def handler_group_one(client: Client, message: Message):
-    global is_media_group_handler_one, is_photo_handler_one, is_text_handler_one, status_determine_handler_one
-    print("handler_group_one ")
-    print("Message Text: ", message.text)
-    print("message.media_group_id: ", message.media_group_id)
-    print("message.video and message.caption: ", (message.video and message.caption))
-    print("message.photo and message.caption: ", (message.photo and message.caption))
-    # if (
-    #     check_link(message.text)
-    #     or check_link(message.caption)
-    #     or check_champ(message.text)
-    #     or check_champ(message.caption)
-    # ):
-    #     return
+    global is_media_group_handler_one, status_determine_handler_one
+
+    logging.info("handler_group_one ")
+    logging.info("Message Text: " + (message.text if message.text else "None"))
+    logging.info(
+        "message.media_group_id: "
+        + (message.media_group_id if message.media_group_id else "None")
+    )
+    logging.info(
+        "message.video and message.caption: "
+        + (
+            (message.video and message.caption)
+            if message.video and message.caption
+            else "None"
+        )
+    )
+    logging.info(
+        "message.photo and message.caption: "
+        + (
+            (message.photo and message.caption)
+            if message.photo and message.caption
+            else "None"
+        )
+    )
+
+    if (
+        check_link(message.text)
+        or check_link(message.caption)
+        or check_champ(message.text)
+        or check_champ(message.caption)
+    ):
+        logging.info("Wrong Message")
+        return
 
     if not status_determine_handler_one:
         if message.media_group_id:
             if is_media_group_handler_one:
                 return
+
+            logger.info("Send MediaGroup")
             replacements = {"@SignalsOw": "@crytpmasteralex"}
 
             is_media_group_handler_one = True
             status_determine_handler_one = True
 
             new_message = await client.copy_media_group(
-                main_channel_link, source_channel_a, message.id
+                main_channel, source_channel_a, message.id
             )
 
             await asyncio.sleep(2)
@@ -106,42 +143,42 @@ async def handler_group_one(client: Client, message: Message):
 
             try:
                 await client.edit_message_caption(
-                    main_channel_link,
+                    main_channel,
                     new_message[0].id,
                     replace_text(new_message[0].caption, replacements),
                 )
             except Exception as ex:
-                print(ex)
+                logging.info(ex)
 
-        elif message.video and message.caption:
+        elif message.video:
             replacements = {"@SignalsOw": "@crytpmasteralex"}
             video = message.video.file_id
             caption = (
                 replace_text(message.caption, replacements) if message.caption else ""
             )
             await client.send_video(
-                main_channel_link,
+                main_channel,
                 video=video,
                 caption=caption,
             )
-        elif message.photo and message.caption:
+        elif message.photo:
             replacements = {"@SignalsOw": "@crytpmasteralex"}
             photo = message.photo.file_id
             caption = (
                 replace_text(message.caption, replacements) if message.caption else ""
             )
             await client.send_photo(
-                main_channel_link,
+                main_channel,
                 photo=photo,
                 caption=caption,
             )
 
-        else:
+        elif message.text:
             replacements = {"@SignalsOw": "@crytpmasteralex"}
 
             new_txt = replace_text(message.text, replacements)
             await client.send_message(
-                main_channel_link,
+                main_channel,
                 new_txt,
                 parse_mode=ParseMode.MARKDOWN,
             )
@@ -150,14 +187,36 @@ async def handler_group_one(client: Client, message: Message):
             return
 
 
+@client.on_message(
+    filters=filters.chat(source_channel_b)
+    | filters.chat(source_channel_b1)
+    | filters.chat(source_channel_b2)
+)
 async def handler_group_two(client: Client, message: Message):
-    global is_media_group_handler_two, is_photo_handler_two, is_text_handler_two, status_determine_handler_two
+    global is_media_group_handler_two, status_determine_handler_two
 
-    print("handler_group_two ")
-    print("Message Text: ", message.text)
-    print("message.media_group_id: ", message.media_group_id)
-    print("message.video and message.caption: ", (message.video and message.caption))
-    print("message.photo and message.caption: ", (message.photo and message.caption))
+    logging.info("handler_group_two ")
+    logging.info("Message Text: " + (message.text if message.text else "None"))
+    logging.info(
+        "message.media_group_id: "
+        + (message.media_group_id if message.media_group_id else "None")
+    )
+    logging.info(
+        "message.video and message.caption: "
+        + (
+            (message.video and message.caption)
+            if message.video and message.caption
+            else "None"
+        )
+    )
+    logging.info(
+        "message.photo and message.caption: "
+        + (
+            (message.photo and message.caption)
+            if message.photo and message.caption
+            else "None"
+        )
+    )
 
     if (
         check_link(message.text)
@@ -165,19 +224,22 @@ async def handler_group_two(client: Client, message: Message):
         or check_champ(message.text)
         or check_champ(message.caption)
     ):
+        logging.info("Wrong Message")
         return
 
     if not status_determine_handler_two:
         if message.media_group_id:
             if is_media_group_handler_two:
                 return
+
+            logger.info("Send MediaGroup")
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
 
             is_media_group_handler_two = True
             status_determine_handler_two = True
 
             new_message = await client.copy_media_group(
-                main_channel, source_channel_a, message.id
+                main_channel, source_channel_b, message.id
             )
 
             await asyncio.sleep(2)
@@ -192,7 +254,7 @@ async def handler_group_two(client: Client, message: Message):
                     replace_text(new_message[0].caption, replacements),
                 )
             except Exception as ex:
-                print(ex)
+                logging.info(ex)
 
         elif message.video or message.caption:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
@@ -217,7 +279,7 @@ async def handler_group_two(client: Client, message: Message):
                 caption=caption,
             )
 
-        else:
+        elif message.text:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
 
             new_txt = replace_text(message.text, replacements)
@@ -231,14 +293,32 @@ async def handler_group_two(client: Client, message: Message):
             return
 
 
+@client.on_message(filters=filters.chat(source_channel_premium))
 async def handler_group_premium(client: Client, message: Message):
-    global is_media_group_handler_two, is_photo_handler_two, is_text_handler_two, status_determine_handler_two
+    global is_media_group_handler_two, status_determine_handler_two
 
-    print("handler_group_premium ")
-    print("Message Text: ", message.text)
-    print("message.media_group_id: ", message.media_group_id)
-    print("message.video and message.caption: ", (message.video and message.caption))
-    print("message.photo and message.caption: ", (message.photo and message.caption))
+    logging.info("handler_group_premium ")
+    logging.info("Message Text: " + (message.text if message.text else "None"))
+    logging.info(
+        "message.media_group_id: "
+        + (message.media_group_id if message.media_group_id else "None")
+    )
+    logging.info(
+        "message.video and message.caption: "
+        + (
+            (message.video and message.caption)
+            if message.video and message.caption
+            else "None"
+        )
+    )
+    logging.info(
+        "message.photo and message.caption: "
+        + (
+            (message.photo and message.caption)
+            if message.photo and message.caption
+            else "None"
+        )
+    )
 
     if (
         check_link(message.text)
@@ -246,12 +326,15 @@ async def handler_group_premium(client: Client, message: Message):
         or check_champ(message.text)
         or check_champ(message.caption)
     ):
+        logging.info("Wrong Message")
         return
 
     if not status_determine_handler_two:
         if message.media_group_id:
             if is_media_group_handler_two:
                 return
+
+            logger.info("Send MediaGroup")
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
 
             is_media_group_handler_two = True
@@ -273,7 +356,7 @@ async def handler_group_premium(client: Client, message: Message):
                     replace_text(new_message[0].caption, replacements),
                 )
             except Exception as ex:
-                print(ex)
+                logging.info(ex)
 
         elif message.video or message.caption:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
@@ -298,7 +381,7 @@ async def handler_group_premium(client: Client, message: Message):
                 caption=caption,
             )
 
-        else:
+        elif message.text:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
 
             new_txt = replace_text(message.text, replacements)
@@ -320,17 +403,25 @@ async def handler_group_two_sticker(client: Client, message: Message):
     await client.copy_message(main_channel, source_channel_b, message.id)
 
 
+async def handler_group_premium_sticker(client: Client, message: Message):
+    await client.copy_message(premium_channel, source_channel_premium, message.id)
+
+
 def zaglushka(client: Client, message: Message):
-    print("zagkushka")
-    pass
+    logging.info("zagkushka")
 
 
-client.add_handler(
-    MessageHandler(
-        zaglushka,
-        filters.chat(source_channel_a) & filters.poll,
-    )
-)
+# client.add_handler(
+#     MessageHandler(
+#         zaglushka,
+#         (
+#             filters.chat(source_channel_a)
+#             | filters.chat(source_channel_b)
+#             | filters.chat(source_channel_premium)
+#         )
+#         & filters.poll,
+#     )
+# )
 
 client.add_handler(
     MessageHandler(
@@ -346,13 +437,26 @@ client.add_handler(
     )
 )
 
+client.add_handler(
+    MessageHandler(
+        handler_group_premium_sticker,
+        filters=filters.sticker & filters.chat(source_channel_premium),
+    )
+)
+
 
 client.add_handler(
     MessageHandler(handler_group_one, filters=filters.chat(source_channel_a))
 )
 
 client.add_handler(
-    MessageHandler(handler_group_two, filters=filters.chat(source_channel_b))
+    MessageHandler(
+        handler_group_two,
+        filters=filters.chat(source_channel_b)
+        | filters.chat(source_channel_b1)
+        | filters.chat(source_channel_b2)
+        | filters.channel,
+    )
 )
 
 
