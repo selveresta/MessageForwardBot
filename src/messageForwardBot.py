@@ -36,7 +36,7 @@ status_determine_handler_one = False
 is_media_group_handler_one = False
 
 source_channel_b = -1002243037651  # test
-source_channel_b1 = -1001742512586  # test
+source_channel_b1 = -1002174970069  # test
 source_channel_b2 = -1001206076820  # test
 # source_channel_b = -1001742512586
 status_determine_handler_two = False
@@ -52,6 +52,7 @@ main_channel = int(-1002106528369)
 premium_channel = int(-1002235324140)
 
 # Create a Telegram client
+# client = Client(name="messageForwardBotTest", api_id=api_id, api_hash=api_hash)
 client = Client(name="messageForwardBot", api_id=api_id, api_hash=api_hash)
 
 
@@ -83,6 +84,21 @@ def check_champ(text):
         return True
 
     return False
+
+
+@client.on_message(filters=filters.chat(source_channel_a) & filters.sticker)
+async def handler_group_one_sticker(client: Client, message: Message):
+    await client.copy_message(main_channel, source_channel_a, message.id)
+
+
+@client.on_message(filters=(filters.chat(source_channel_b)) & filters.sticker)
+async def handler_group_two_sticker(client: Client, message: Message):
+    await client.copy_message(main_channel, source_channel_b, message.id)
+
+
+@client.on_message(filters=filters.chat(source_channel_premium) & filters.sticker)
+async def handler_group_premium_sticker(client: Client, message: Message):
+    await client.copy_message(premium_channel, source_channel_premium, message.id)
 
 
 @client.on_message(filters=filters.chat(source_channel_a))
@@ -188,18 +204,20 @@ async def handler_group_one(client: Client, message: Message):
 
 
 @client.on_message(
-    filters=filters.chat(source_channel_b)
-    | filters.chat(source_channel_b1)
-    | filters.chat(source_channel_b2)
+    filters=(
+        filters.chat(source_channel_b)
+        | filters.chat(source_channel_b1)
+        | filters.chat(source_channel_b2)
+    )
 )
 async def handler_group_two(client: Client, message: Message):
     global is_media_group_handler_two, status_determine_handler_two
 
-    logging.info("handler_group_two ")
+    logging.info(f"handler_group_two {message.chat.id} ")
     logging.info("Message Text: " + (message.text if message.text else "None"))
     logging.info(
         "message.media_group_id: "
-        + (message.media_group_id if message.media_group_id else "None")
+        + (str(message.media_group_id) if message.media_group_id else "None")
     )
     logging.info(
         "message.video and message.caption: "
@@ -256,7 +274,7 @@ async def handler_group_two(client: Client, message: Message):
             except Exception as ex:
                 logging.info(ex)
 
-        elif message.video or message.caption:
+        elif message.video:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
             video = message.video.file_id
             caption = (
@@ -267,7 +285,7 @@ async def handler_group_two(client: Client, message: Message):
                 video=video,
                 caption=caption,
             )
-        elif message.photo or message.caption:
+        elif message.photo:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
             photo = message.photo.file_id
             caption = (
@@ -358,7 +376,7 @@ async def handler_group_premium(client: Client, message: Message):
             except Exception as ex:
                 logging.info(ex)
 
-        elif message.video or message.caption:
+        elif message.video:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
             video = message.video.file_id
             caption = (
@@ -369,7 +387,7 @@ async def handler_group_premium(client: Client, message: Message):
                 video=video,
                 caption=caption,
             )
-        elif message.photo or message.caption:
+        elif message.photo:
             replacements = {"@bybitpro_michael": "@crytpmasteralex"}
             photo = message.photo.file_id
             caption = (
@@ -395,74 +413,20 @@ async def handler_group_premium(client: Client, message: Message):
             return
 
 
-async def handler_group_one_sticker(client: Client, message: Message):
-    await client.copy_message(main_channel, source_channel_a, message.id)
-
-
-async def handler_group_two_sticker(client: Client, message: Message):
-    await client.copy_message(main_channel, source_channel_b, message.id)
-
-
-async def handler_group_premium_sticker(client: Client, message: Message):
-    await client.copy_message(premium_channel, source_channel_premium, message.id)
-
-
 def zaglushka(client: Client, message: Message):
     logging.info("zagkushka")
 
 
-# client.add_handler(
-#     MessageHandler(
-#         zaglushka,
-#         (
-#             filters.chat(source_channel_a)
-#             | filters.chat(source_channel_b)
-#             | filters.chat(source_channel_premium)
-#         )
-#         & filters.poll,
-#     )
-# )
-
 client.add_handler(
     MessageHandler(
-        handler_group_one_sticker,
-        filters=filters.sticker & filters.chat(source_channel_a),
+        zaglushka,
+        (
+            filters.chat(source_channel_a)
+            | filters.chat(source_channel_b)
+            | filters.chat(source_channel_premium)
+        )
+        & filters.poll,
     )
 )
-
-client.add_handler(
-    MessageHandler(
-        handler_group_two_sticker,
-        filters=filters.sticker & filters.chat(source_channel_b),
-    )
-)
-
-client.add_handler(
-    MessageHandler(
-        handler_group_premium_sticker,
-        filters=filters.sticker & filters.chat(source_channel_premium),
-    )
-)
-
-
-client.add_handler(
-    MessageHandler(handler_group_one, filters=filters.chat(source_channel_a))
-)
-
-client.add_handler(
-    MessageHandler(
-        handler_group_two,
-        filters=filters.chat(source_channel_b)
-        | filters.chat(source_channel_b1)
-        | filters.chat(source_channel_b2)
-        | filters.channel,
-    )
-)
-
-
-client.add_handler(
-    MessageHandler(handler_group_premium, filters=filters.chat(source_channel_premium))
-)
-
 
 client.run()
