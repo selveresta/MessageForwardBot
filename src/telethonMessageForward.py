@@ -1,17 +1,14 @@
 from telethon import TelegramClient, events
 from telethon.types import (
-    Message,
     MessageMediaPhoto,
     MessageMediaDocument,
     MessageMediaPoll,
-    MessageMediaEmpty,
 )
 from config import API_HASH, API_ID, PHONE
 
 import asyncio
 import logging
 import os
-import pprint
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,14 +27,14 @@ api_hash = API_HASH
 phone = PHONE
 
 
-main_channel = int(-1002227848813)
+main_channel = int(-1002247420892)
+# premium_channel = int(-1002227848813)
 
 # Create a Telegram client
 
 client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
 
 mediaGroup_1 = []
-mediaGroup_2 = []
 
 
 # Helper function to replace text
@@ -70,21 +67,20 @@ def check_champ(text):
     return False
 
 
-entity_ids = [
-    -1001746203369,
+source_one_two = [
     -1001742512586,
-    -1002191626337,
-    -1001871051921,
-    -1001876753838,
-    -1002121017957,
-    -1002169930605,
+    -1001746203369,
+]
+
+source_premium = [
+    -1001746203369,
 ]
 
 
 is_media_group = False
 
 
-async def forward_anonim_message(event, text):
+async def forward_anonim_message(event, text, channel):
     replacements_source_1 = {"@SignalsOw": "@crytpmasteralex"}
     replacements_source_2 = {"@bybitpro_michael": "@crytpmasteralex"}
 
@@ -97,18 +93,18 @@ async def forward_anonim_message(event, text):
         photo_file = await client.download_media(
             event.message.media, f"{photo_folder}/photo"
         )
-        await client.send_file(main_channel, photo_file, caption=text)
+        await client.send_file(channel, photo_file, caption=text)
         logging.info(photo_folder)
         logging.info(photo_file)
         os.remove(photo_file)
         os.rmdir(photo_folder)
     elif isinstance(event.message.media, MessageMediaDocument):
         logging.info("Document: " + str(event.message.media.document))
-        await client.send_file(main_channel, event.message.media.document, caption=text)
+        await client.send_file(channel, event.message.media.document, caption=text)
     elif isinstance(event.message.media, MessageMediaPoll):
         return
     else:
-        await client.send_message(main_channel, text)
+        await client.send_message(channel, text)
 
 
 async def _get_media_posts_in_group(chat, original_post, max_amp=10):
@@ -136,13 +132,13 @@ async def _get_media_posts_in_group(chat, original_post, max_amp=10):
     return media
 
 
-@client.on(events.NewMessage(entity_ids))
+@client.on(events.NewMessage(source_one_two))
 async def newMessage(event):
     global is_media_group, mediaGroup_1
     chat = await event.get_chat()
-    chat_id = event.chat_id
     text = event.message.message
-    # logging.info(event)
+    logging.info(event)
+    print(event.raw_text)
 
     if check_champ(text) or check_link(text):
         return
@@ -165,18 +161,59 @@ async def newMessage(event):
 
             await client.send_file(main_channel, mediaGroup_1, caption=text)
 
-            mediaGroup_1 = []
-            c = 0
-
             for i in mediaGroup_1:
                 os.remove(i)
+
+            mediaGroup_1 = []
+            c = 0
 
             os.rmdir(str(id))
             await asyncio.sleep(5)
             is_media_group = False
 
     else:
-        await forward_anonim_message(event, text)
+        await forward_anonim_message(event, text, main_channel)
+
+
+# @client.on(events.NewMessage(source_premium))
+# async def newMessagePremium(event):
+#     global is_media_group, mediaGroup_1
+#     chat = await event.get_chat()
+#     text = event.message.message
+#     logging.info(event)
+
+#     if check_champ(text) or check_link(text):
+#         return
+
+#     if event.message.grouped_id:
+#         if not is_media_group:
+#             is_media_group = True
+#             id = event.message.grouped_id
+#             messages = await _get_media_posts_in_group(chat, event.message)
+#             text = ""
+#             c = 0
+#             for i in messages:
+#                 if c == 0:
+#                     text = i.message
+#                     c += 1
+
+#                 photo_file = await client.download_media(i.media, f"{id}/file")
+#                 mediaGroup_1.append(photo_file)
+
+#             await client.send_file(main_channel, mediaGroup_1, caption=text)
+
+#             for i in mediaGroup_1:
+#                 os.remove(i)
+
+#             mediaGroup_1 = []
+#             c = 0
+
+#             os.rmdir(str(id))
+#             await asyncio.sleep(5)
+#             is_media_group = False
+
+#     else:
+#         await forward_anonim_message(event, text, premium_channel)
 
 
 client.start(phone)
