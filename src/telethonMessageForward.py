@@ -154,8 +154,6 @@ async def newMessage(event):
                     "@bybitpro_michael": "@crytpmasteralex",
                 }
 
-               
-
                 if not is_media_group:
                     is_media_group = True
                     id = event.message.grouped_id
@@ -169,7 +167,6 @@ async def newMessage(event):
 
                         photo_file = await client.download_media(i.media, f"{id}/file")
                         mediaGroup_1.append(photo_file)
-
 
                     text = replace_text(text, replacements_source)
 
@@ -231,4 +228,9 @@ async def newMessage(event):
 
 
 client.start(phone)
-client.run_until_disconnected()
+while True:
+    if client.is_connected():
+        asyncio.sleep(30)
+        continue
+
+    client.run_until_disconnected()
