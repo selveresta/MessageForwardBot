@@ -132,47 +132,50 @@ async def _get_media_posts_in_group(chat, original_post, max_amp=10):
     return media
 
 
-@client.on(events.NewMessage(source_one_two))
+@client.on(events.NewMessage)
 async def newMessage(event):
     global is_media_group, mediaGroup_1
-    chat = await event.get_chat()
-    text = event.message.message
-    logging.info(event)
-    print(event.raw_text)
+    for i in source_one_two:
+        print(i)
+        chat = await event.get_chat()
+        if chat.id == i:
+            print(i)
+            text = event.message.message
+            logging.info(event)
 
-    if check_champ(text) or check_link(text):
-        return
+            if check_champ(text) or check_link(text):
+                return
 
-    if event.message.grouped_id:
+            if event.message.grouped_id:
 
-        if not is_media_group:
-            is_media_group = True
-            id = event.message.grouped_id
-            messages = await _get_media_posts_in_group(chat, event.message)
-            text = ""
-            c = 0
-            for i in messages:
-                if c == 0:
-                    text = i.message
-                    c += 1
+                if not is_media_group:
+                    is_media_group = True
+                    id = event.message.grouped_id
+                    messages = await _get_media_posts_in_group(chat, event.message)
+                    text = ""
+                    c = 0
+                    for i in messages:
+                        if c == 0:
+                            text = i.message
+                            c += 1
 
-                photo_file = await client.download_media(i.media, f"{id}/file")
-                mediaGroup_1.append(photo_file)
+                        photo_file = await client.download_media(i.media, f"{id}/file")
+                        mediaGroup_1.append(photo_file)
 
-            await client.send_file(main_channel, mediaGroup_1, caption=text)
+                    await client.send_file(main_channel, mediaGroup_1, caption=text)
 
-            for i in mediaGroup_1:
-                os.remove(i)
+                    for i in mediaGroup_1:
+                        os.remove(i)
 
-            mediaGroup_1 = []
-            c = 0
+                    mediaGroup_1 = []
+                    c = 0
 
-            os.rmdir(str(id))
-            await asyncio.sleep(5)
-            is_media_group = False
+                    os.rmdir(str(id))
+                    await asyncio.sleep(5)
+                    is_media_group = False
 
-    else:
-        await forward_anonim_message(event, text, main_channel)
+            else:
+                await forward_anonim_message(event, text, main_channel)
 
 
 # @client.on(events.NewMessage(source_premium))
