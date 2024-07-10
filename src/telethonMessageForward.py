@@ -5,6 +5,7 @@ from telethon.types import (
     MessageMediaPoll,
 )
 from config import API_HASH, API_ID, PHONE
+from telethon import utils
 
 import asyncio
 import logging
@@ -61,16 +62,17 @@ def check_champ(text):
     if not text:
         return
 
-    if "European Football Championship" in text:
+    if (
+        "European Football Championship" in text
+        or "match" in text
+        or "semi-final" in text
+    ):
         return True
 
     return False
 
 
-source_one_two = [
-    -1001742512586,
-    -1001746203369,
-]
+source_one_two = [-1001742512586, -1001746203369, -1002227848813]
 
 source_premium = [
     -1001746203369,
@@ -81,12 +83,13 @@ is_media_group = False
 
 
 async def forward_anonim_message(event, text, channel):
-    replacements_source_1 = {"@SignalsOw": "@crytpmasteralex"}
-    replacements_source_2 = {"@bybitpro_michael": "@crytpmasteralex"}
-
-    text = replace_text(text, replacements_source_1)
-    text = replace_text(text, replacements_source_2)
-
+    replacements_source = {
+        "@SignalsOw": "@crytpmasteralex",
+        "@bybitpro_michael": "@crytpmasteralex",
+    }
+    print(text)
+    text = replace_text(text, replacements_source)
+    print(text)
     if isinstance(event.message.media, MessageMediaPhoto):
         logging.info("Photo: " + str(event.message.media.photo))
         photo_folder = f"./{event.message.media.photo.id}"
@@ -134,19 +137,24 @@ async def _get_media_posts_in_group(chat, original_post, max_amp=10):
 
 @client.on(events.NewMessage)
 async def newMessage(event):
-    global is_media_group, mediaGroup_1
+    global is_media_group, mediaGroup_1, source_one_two
     for i in source_one_two:
-        print(i)
+        real_id, peer_type = utils.resolve_id(i)
+
         chat = await event.get_chat()
-        if chat.id == i:
-            print(i)
+        if chat.id == real_id:
             text = event.message.message
-            logging.info(event)
 
             if check_champ(text) or check_link(text):
                 return
 
             if event.message.grouped_id:
+                replacements_source = {
+                    "@SignalsOw": "@crytpmasteralex",
+                    "@bybitpro_michael": "@crytpmasteralex",
+                }
+
+               
 
                 if not is_media_group:
                     is_media_group = True
@@ -162,6 +170,9 @@ async def newMessage(event):
                         photo_file = await client.download_media(i.media, f"{id}/file")
                         mediaGroup_1.append(photo_file)
 
+                    print(text)
+                    text = replace_text(text, replacements_source)
+                    print(text)
                     await client.send_file(main_channel, mediaGroup_1, caption=text)
 
                     for i in mediaGroup_1:
@@ -220,5 +231,4 @@ async def newMessage(event):
 
 
 client.start(phone)
-with client:
-    client.run_until_disconnected()
+client.run_until_disconnected()
