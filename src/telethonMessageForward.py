@@ -170,9 +170,9 @@ async def newMessage(event):
                         photo_file = await client.download_media(i.media, f"{id}/file")
                         mediaGroup_1.append(photo_file)
 
-                    print(text)
+
                     text = replace_text(text, replacements_source)
-                    print(text)
+
                     await client.send_file(main_channel, mediaGroup_1, caption=text)
 
                     for i in mediaGroup_1:
