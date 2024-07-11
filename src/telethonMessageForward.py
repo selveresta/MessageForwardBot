@@ -1,4 +1,4 @@
-from telethon import TelegramClient, events
+from telethon.sync import TelegramClient, events
 from telethon.types import (
     MessageMediaPhoto,
     MessageMediaDocument,
@@ -33,157 +33,153 @@ main_channel = int(-1002247420892)
 
 # Create a Telegram client
 
-client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
+# client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
 
-mediaGroup_1 = []
+with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
+    # Helper function to replace text
+    mediaGroup_1 = []
+    is_media_group = False
 
+    source_one_two = [-1001742512586, -1001746203369, -1002227848813]
 
-# Helper function to replace text
-def replace_text(text, replacements):
-    for old, new in replacements.items():
-        text = text.replace(old, new)
-    return text
-
-
-def check_link(text):
-    if not text:
-        return
-
-    if "https://www.bybit.com/" in text or "https" in text:
-        return True
-
-    # if "https://www.bybit.com/" in text:
-    #     return True
-
-    return False
-
-
-def check_champ(text):
-    if not text:
-        return
-
-    if (
-        "European Football Championship" in text
-        or "match" in text
-        or "semi-final" in text
-    ):
-        return True
-
-    return False
-
-
-source_one_two = [-1001742512586, -1001746203369, -1002227848813]
-
-source_premium = [
-    -1001746203369,
-]
-
-
-is_media_group = False
-
-
-async def forward_anonim_message(event, text, channel):
-    replacements_source = {
-        "@SignalsOw": "@crytpmasteralex",
-        "@bybitpro_michael": "@crytpmasteralex",
-    }
-    print(text)
-    text = replace_text(text, replacements_source)
-    print(text)
-    if isinstance(event.message.media, MessageMediaPhoto):
-        logging.info("Photo: " + str(event.message.media.photo))
-        photo_folder = f"./{event.message.media.photo.id}"
-        photo_file = await client.download_media(
-            event.message.media, f"{photo_folder}/photo"
-        )
-        await client.send_file(channel, photo_file, caption=text)
-        logging.info(photo_folder)
-        logging.info(photo_file)
-        os.remove(photo_file)
-        os.rmdir(photo_folder)
-    elif isinstance(event.message.media, MessageMediaDocument):
-        logging.info("Document: " + str(event.message.media.document))
-        await client.send_file(channel, event.message.media.document, caption=text)
-    elif isinstance(event.message.media, MessageMediaPoll):
-        return
-    else:
-        await client.send_message(channel, text)
-
-
-async def _get_media_posts_in_group(chat, original_post, max_amp=10):
-    """
-    Searches for Telegram posts that are part of the same group of uploads
-    The search is conducted around the id of the original post with an amplitude
-    of `max_amp` both ways
-    Returns a list of [post] where each post has media and is in the same grouped_id
-    """
-    if original_post.grouped_id is None:
-        return [original_post] if original_post.media is not None else []
-
-    search_ids = [
-        i for i in range(original_post.id - max_amp, original_post.id + max_amp + 1)
+    source_premium = [
+        -1001746203369,
     ]
-    posts = await client.get_messages(chat, ids=search_ids)
-    media = []
-    for post in posts:
+
+    def replace_text(text, replacements):
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        return text
+
+    def check_link(text):
+        if not text:
+            return
+
+        if "https://www.bybit.com/" in text or "https" in text:
+            return True
+
+        # if "https://www.bybit.com/" in text:
+        #     return True
+
+        return False
+
+    def check_champ(text):
+        if not text:
+            return
+
         if (
-            post is not None
-            and post.grouped_id == original_post.grouped_id
-            and post.media is not None
+            "European Football Championship" in text
+            or "match" in text
+            or "semi-final" in text
         ):
-            media.append(post)
-    return media
+            return True
 
+        return False
 
-@client.on(events.NewMessage)
-async def newMessage(event):
-    global is_media_group, mediaGroup_1, source_one_two
-    for i in source_one_two:
-        real_id, peer_type = utils.resolve_id(i)
+    async def forward_anonim_message(event, text, channel):
+        replacements_source = {
+            "@SignalsOw": "@crytpmasteralex",
+            "@bybitpro_michael": "@crytpmasteralex",
+        }
 
-        chat = await event.get_chat()
-        if chat.id == real_id:
-            text = event.message.message
+        text = replace_text(text, replacements_source)
 
-            if check_champ(text) or check_link(text):
-                return
+        if isinstance(event.message.media, MessageMediaPhoto):
+            logging.info("Photo: " + str(event.message.media.photo))
+            photo_folder = f"./{event.message.media.photo.id}"
+            photo_file = await client.download_media(
+                event.message.media, f"{photo_folder}/photo"
+            )
+            await client.send_file(channel, photo_file, caption=text)
+            logging.info(photo_folder)
+            logging.info(photo_file)
+            os.remove(photo_file)
+            os.rmdir(photo_folder)
+        elif isinstance(event.message.media, MessageMediaDocument):
+            logging.info("Document: " + str(event.message.media.document))
+            await client.send_file(channel, event.message.media.document, caption=text)
+        elif isinstance(event.message.media, MessageMediaPoll):
+            return
+        else:
+            await client.send_message(channel, text)
 
-            if event.message.grouped_id:
-                replacements_source = {
-                    "@SignalsOw": "@crytpmasteralex",
-                    "@bybitpro_michael": "@crytpmasteralex",
-                }
+    async def _get_media_posts_in_group(chat, original_post, max_amp=10):
+        """
+        Searches for Telegram posts that are part of the same group of uploads
+        The search is conducted around the id of the original post with an amplitude
+        of `max_amp` both ways
+        Returns a list of [post] where each post has media and is in the same grouped_id
+        """
+        if original_post.grouped_id is None:
+            return [original_post] if original_post.media is not None else []
 
-                if not is_media_group:
-                    is_media_group = True
-                    id = event.message.grouped_id
-                    messages = await _get_media_posts_in_group(chat, event.message)
-                    text = ""
-                    c = 0
-                    for i in messages:
-                        if c == 0:
-                            text = i.message
-                            c += 1
+        search_ids = [
+            i for i in range(original_post.id - max_amp, original_post.id + max_amp + 1)
+        ]
+        posts = await client.get_messages(chat, ids=search_ids)
+        media = []
+        for post in posts:
+            if (
+                post is not None
+                and post.grouped_id == original_post.grouped_id
+                and post.media is not None
+            ):
+                media.append(post)
+        return media
 
-                        photo_file = await client.download_media(i.media, f"{id}/file")
-                        mediaGroup_1.append(photo_file)
+    @client.on(events.NewMessage)
+    async def newMessage(event):
+        global is_media_group, mediaGroup_1, source_one_two
+        for i in source_one_two:
+            real_id, peer_type = utils.resolve_id(i)
 
-                    text = replace_text(text, replacements_source)
+            chat = await event.get_chat()
+            if chat.id == real_id:
+                text = event.message.message
 
-                    await client.send_file(main_channel, mediaGroup_1, caption=text)
+                if check_champ(text) or check_link(text):
+                    return
 
-                    for i in mediaGroup_1:
-                        os.remove(i)
+                if event.message.grouped_id:
+                    replacements_source = {
+                        "@SignalsOw": "@crytpmasteralex",
+                        "@bybitpro_michael": "@crytpmasteralex",
+                    }
 
-                    mediaGroup_1 = []
-                    c = 0
+                    if not is_media_group:
+                        is_media_group = True
+                        id = event.message.grouped_id
+                        messages = await _get_media_posts_in_group(chat, event.message)
+                        text = ""
+                        c = 0
+                        for i in messages:
+                            if c == 0:
+                                text = i.message
+                                c += 1
 
-                    os.rmdir(str(id))
-                    await asyncio.sleep(5)
-                    is_media_group = False
+                            photo_file = await client.download_media(
+                                i.media, f"{id}/file"
+                            )
+                            mediaGroup_1.append(photo_file)
 
-            else:
-                await forward_anonim_message(event, text, main_channel)
+                        text = replace_text(text, replacements_source)
+
+                        await client.send_file(main_channel, mediaGroup_1, caption=text)
+
+                        for i in mediaGroup_1:
+                            os.remove(i)
+
+                        mediaGroup_1 = []
+                        c = 0
+
+                        os.rmdir(str(id))
+                        await asyncio.sleep(5)
+                        is_media_group = False
+
+                else:
+                    await forward_anonim_message(event, text, main_channel)
+
+    client.run_until_disconnected()
 
 
 # @client.on(events.NewMessage(source_premium))
@@ -225,12 +221,3 @@ async def newMessage(event):
 
 #     else:
 #         await forward_anonim_message(event, text, premium_channel)
-
-
-client.start(phone)
-while True:
-    if client.is_connected():
-        asyncio.sleep(30)
-        continue
-
-    client.run_until_disconnected()
