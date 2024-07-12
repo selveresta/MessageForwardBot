@@ -40,13 +40,11 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
     mediaGroup_1 = []
     is_media_group = False
 
-    source_one_two = [-1001742512586, -1001746203369]
+    source_one_two = [-1001742512586, -1001746203369, -1002227848813]
 
     source_premium = [
         -1001746203369,
     ]
-
-    r, p = utils.resolve_id(-1002227848813)
 
     def replace_text(text, replacements):
         for old, new in replacements.items():
@@ -129,7 +127,7 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
                 media.append(post)
         return media
 
-    @client.on(events.NewMessage(incoming=True))
+    @client.on(events.NewMessage(incoming=True, from_users=[6229293964]))
     async def newMessage(event):
         global is_media_group, mediaGroup_1, source_one_two
         for i in source_one_two:
