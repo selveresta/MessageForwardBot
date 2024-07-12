@@ -33,7 +33,7 @@ main_channel = int(-1002247420892)
 
 # Create a Telegram client
 
-client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
+# client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
 
 with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
     # Helper function to replace text
