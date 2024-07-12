@@ -233,7 +233,9 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
                             )
                             mediaGroup_1.append(photo_file)
 
+                        print(text)
                         text = replace_text(text, replacements_source)
+                        print(text)
 
                         try:
                             await client.send_file(
