@@ -40,7 +40,8 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
     mediaGroup_1 = []
     is_media_group = False
 
-    source_one_two = [-1001742512586, -1001746203369, -1002227848813]
+    source_one_two = [-1001742512586, -1002227848813]
+    source_two = [-1001746203369]
 
     source_premium = [
         -1001746203369,
@@ -135,8 +136,8 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
 
     @client.on(events.NewMessage(from_users=[6229293964]))
     async def newMessage(event):
-        global is_media_group, mediaGroup_1, source_one_two
-        for i in source_one_two:
+        global is_media_group, mediaGroup_1, source_two
+        for i in source_two:
             real_id, peer_type = utils.resolve_id(i)
 
             chat = await event.get_chat()
