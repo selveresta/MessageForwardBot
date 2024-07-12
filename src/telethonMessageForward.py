@@ -137,7 +137,7 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
     def isBlank(myString):
         return not (myString and myString.strip())
 
-    @client.on(events.NewMessage(from_users=[6229293964]))
+    @client.on(events.NewMessage(chats=source_two, from_users=[6229293964]))
     async def newMessage(event):
         global is_media_group, mediaGroup_1, source_two
         for i in source_two:
@@ -237,7 +237,7 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
                             mediaGroup_1.append(photo_file)
 
                         text = replace_text(text, replacements_source)
-                        
+
                         try:
                             await client.send_file(
                                 main_channel, mediaGroup_1, caption=text
