@@ -83,25 +83,31 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
         }
 
         text = replace_text(text, replacements_source)
-
-        if isinstance(event.message.media, MessageMediaPhoto):
-            logging.info("Photo: " + str(event.message.media.photo))
-            photo_folder = f"./{event.message.media.photo.id}"
-            photo_file = await client.download_media(
-                event.message.media, f"{photo_folder}/photo"
-            )
-            await client.send_file(channel, photo_file, caption=text)
-            logging.info(photo_folder)
-            logging.info(photo_file)
+        try:
+            if isinstance(event.message.media, MessageMediaPhoto):
+                logging.info("Photo: " + str(event.message.media.photo))
+                photo_folder = f"./{event.message.media.photo.id}"
+                photo_file = await client.download_media(
+                    event.message.media, f"{photo_folder}/photo"
+                )
+                await client.send_file(channel, photo_file, caption=text)
+                logging.info(photo_folder)
+                logging.info(photo_file)
+                os.remove(photo_file)
+                os.rmdir(photo_folder)
+            elif isinstance(event.message.media, MessageMediaDocument):
+                logging.info("Document: " + str(event.message.media.document))
+                await client.send_file(
+                    channel, event.message.media.document, caption=text
+                )
+            elif isinstance(event.message.media, MessageMediaPoll):
+                return
+            else:
+                await client.send_message(channel, text)
+        except Exception as ex:
+            logging.error(ex)
             os.remove(photo_file)
             os.rmdir(photo_folder)
-        elif isinstance(event.message.media, MessageMediaDocument):
-            logging.info("Document: " + str(event.message.media.document))
-            await client.send_file(channel, event.message.media.document, caption=text)
-        elif isinstance(event.message.media, MessageMediaPoll):
-            return
-        else:
-            await client.send_message(channel, text)
 
     async def _get_media_posts_in_group(chat, original_post, max_amp=10):
         """
@@ -127,7 +133,71 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
                 media.append(post)
         return media
 
-    @client.on(events.NewMessage(incoming=True, from_users=[6229293964]))
+    @client.on(events.NewMessage(from_users=[6229293964]))
+    async def newMessage(event):
+        global is_media_group, mediaGroup_1, source_one_two
+        for i in source_one_two:
+            real_id, peer_type = utils.resolve_id(i)
+
+            chat = await event.get_chat()
+            if chat.id == real_id:
+                text = event.message.message
+
+                if check_champ(text) or check_link(text):
+                    return
+
+                if event.message.grouped_id:
+                    replacements_source = {
+                        "@SignalsOw": "@crytpmasteralex",
+                        "@bybitpro_michael": "@crytpmasteralex",
+                    }
+
+                    if not is_media_group:
+                        is_media_group = True
+                        id = event.message.grouped_id
+                        messages = await _get_media_posts_in_group(chat, event.message)
+                        text = ""
+                        c = 0
+                        for i in messages:
+                            if c == 0:
+                                text = i.message
+                                c += 1
+
+                            photo_file = await client.download_media(
+                                i.media, f"{id}/file"
+                            )
+                            mediaGroup_1.append(photo_file)
+
+                        text = replace_text(text, replacements_source)
+                        try:
+                            await client.send_file(
+                                main_channel, mediaGroup_1, caption=text
+                            )
+
+                            for i in mediaGroup_1:
+                                os.remove(i)
+
+                            mediaGroup_1 = []
+                            c = 0
+
+                            os.rmdir(str(id))
+                            await asyncio.sleep(5)
+                            is_media_group = False
+                        except:
+                            for i in mediaGroup_1:
+                                os.remove(i)
+
+                            mediaGroup_1 = []
+                            c = 0
+
+                            os.rmdir(str(id))
+                            await asyncio.sleep(5)
+                            is_media_group = False
+
+                else:
+                    await forward_anonim_message(event, text, main_channel)
+
+    @client.on(events.NewMessage)
     async def newMessage(event):
         global is_media_group, mediaGroup_1, source_one_two
         for i in source_one_two:
