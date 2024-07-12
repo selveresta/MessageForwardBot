@@ -33,7 +33,7 @@ main_channel = int(-1002247420892)
 
 # Create a Telegram client
 
-# client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
+client = TelegramClient("telethonMessageForwardBot", api_id=api_id, api_hash=api_hash)
 
 with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
     # Helper function to replace text
@@ -235,17 +235,30 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
 
                         text = replace_text(text, replacements_source)
 
-                        await client.send_file(main_channel, mediaGroup_1, caption=text)
+                        try:
+                            await client.send_file(
+                                main_channel, mediaGroup_1, caption=text
+                            )
 
-                        for i in mediaGroup_1:
-                            os.remove(i)
+                            for i in mediaGroup_1:
+                                os.remove(i)
 
-                        mediaGroup_1 = []
-                        c = 0
+                            mediaGroup_1 = []
+                            c = 0
 
-                        os.rmdir(str(id))
-                        await asyncio.sleep(5)
-                        is_media_group = False
+                            os.rmdir(str(id))
+                            await asyncio.sleep(5)
+                            is_media_group = False
+                        except:
+                            for i in mediaGroup_1:
+                                os.remove(i)
+
+                            mediaGroup_1 = []
+                            c = 0
+
+                            os.rmdir(str(id))
+                            await asyncio.sleep(5)
+                            is_media_group = False
 
                 else:
                     await forward_anonim_message(event, text, main_channel)
