@@ -10,6 +10,7 @@ from telethon import utils
 import asyncio
 import logging
 import os
+import re
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,11 +68,14 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
     def check_champ(text):
         if not text:
             return
-
+        x = re.search("\d:\d", text)
         if (
             "European Football Championship" in text
             or "match" in text
             or "semi-final" in text
+            or "Euro" in text
+            or "THE FINAL" in text
+            or x
         ):
             return True
 
@@ -81,6 +85,7 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
         replacements_source = {
             "@SignalsOw": "@crytpmasteralex",
             "@bybitpro_michael": "@crytpmasteralex",
+            "BybitPro VIP": "Crypto Signal Masters VIP",
         }
 
         text = replace_text(text, replacements_source)
