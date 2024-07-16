@@ -83,7 +83,7 @@ with TelegramClient("telethonMessageForwardBot", api_id, api_hash) as client:
 
     async def forward_anonim_message(event, text, channel):
         replacements_source = {
-            "@SignalsOw": "@crytpmasteralex",
+            "@SignalsOW": "@crytpmasteralex",
             "@bybitpro_michael": "@crytpmasteralex",
             "BybitPro VIP": "Crypto Signal Masters VIP",
         }
