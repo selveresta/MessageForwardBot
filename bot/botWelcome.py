@@ -19,8 +19,16 @@ API_TOKEN = str(os.environ.get("BOT_API_TOKEN", 0))
 
 main_channel = int(-1002247420892)
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("./welcome.log"),  # Log to a file
+        logging.StreamHandler(),  # Log to console
+    ],
+)
+
+logger = logging.getLogger(__name__)
 
 # Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
@@ -73,7 +81,6 @@ def update_user(id):
 def get_users():
     with open("users.json", "r") as file:
         db = json.load(file)
-        print(db)
         users = db.get("users")
 
         return users
@@ -181,7 +188,6 @@ async def send_welcome(message: Message):
 
     file = FSInputFile("subs.xlsx")
     await bot.send_document(message.from_user.id, file)
-    print(f"Excel file subs.xlsx generated successfully.")
 
 
 async def main():
