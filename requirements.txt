@@ -2,3 +2,5 @@ python-dotenv
 pyrogram
 tgcrypto
 aiogram
+pandas
+xlsxwriter
